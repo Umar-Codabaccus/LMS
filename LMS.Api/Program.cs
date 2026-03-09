@@ -1,11 +1,15 @@
 using LMS.Api.Application.Services;
 using LMS.Api.Application.Services.Interfaces;
+using LMS.Api.Infrastructure.Authentication;
 using LMS.Api.Infrastructure.Context;
 using LMS.Api.Infrastructure.Interfaces;
 using LMS.Api.Infrastructure.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +32,8 @@ builder.Services.AddOpenApi();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddSingleton<TokenProvider>();
+
 // repos
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ICourseRepository, CourseRepository>();
@@ -35,10 +41,25 @@ builder.Services.AddScoped<IModuleRepository, ModuleRepository>();
 builder.Services.AddScoped<IEnrolledCourseRepository, EnrolledCourseRepository>();
 
 // services
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<IModuleService, ModuleService>();
 builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
+
+builder.Services.AddAuthorization();
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(o =>
+    {
+        o.RequireHttpsMetadata = false;
+        o.TokenValidationParameters = new TokenValidationParameters
+        {
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"])),
+            ValidIssuer = builder.Configuration["Jwt:Isuuers"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            ClockSkew = TimeSpan.Zero
+        };
+    });
 
 var app = builder.Build();
 
@@ -53,6 +74,7 @@ app.UseHttpsRedirection();
 
 app.UseCors("AllowFrontend");
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseStaticFiles(new StaticFileOptions

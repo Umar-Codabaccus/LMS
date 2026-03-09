@@ -1,6 +1,7 @@
 ﻿using LMS.Api.Application.DTOs.Auth;
 using LMS.Api.Application.Errors;
 using LMS.Api.Application.Services.Interfaces;
+using LMS.Api.Shared;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LMS.Api.Presentation.Controllers
@@ -10,10 +11,12 @@ namespace LMS.Api.Presentation.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly IAuthService _authService;
 
-        public AuthController(IUserService userService)
+        public AuthController(IUserService userService, IAuthService authService)
         {
             _userService = userService;
+            _authService = authService;
         }
 
         [HttpPost("register")]
@@ -34,6 +37,26 @@ namespace LMS.Api.Presentation.Controllers
             }
 
             return Created(string.Empty, result);
+        }
+
+        [HttpPost("jwt-login")]
+        public ActionResult JwtLogin(AuthRequest request)
+        {
+            var result = _authService.LoginUser(request);
+
+            var response = new JwtAuthResponse(result.Value, result.Error);
+
+            if (result.IsFailure)
+            {
+                Error error = result.Error;
+                switch (error.Type)
+                {
+                    case ErrorType.NotFound: return NotFound(response);
+                    case ErrorType.BadRequest: return BadRequest(response);
+                }
+            }
+
+            return Ok(response);
         }
 
         [HttpPost("login")]

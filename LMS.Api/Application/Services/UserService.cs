@@ -6,16 +6,19 @@ using LMS.Api.Application.Errors;
 using LMS.Api.Domain.Enums;
 using LMS.Api.Application.Services.Interfaces;
 using LMS.Api.Application.DTOs.User;
+using LMS.Api.Infrastructure.Authentication;
 
 namespace LMS.Api.Application.Services
 {
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
+        TokenProvider _tokenProvider;
 
-        public UserService(IUserRepository userRepository)
+        public UserService(IUserRepository userRepository, TokenProvider tokenProvider)
         {
             _userRepository = userRepository;
+            _tokenProvider = tokenProvider;
         }
 
         public AuthResponse Register(RegisterDto dto)
