@@ -1,4 +1,5 @@
-﻿using LMS.Api.Domain.Entities;
+﻿using LMS.Api.Application;
+using LMS.Api.Domain.Entities;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
@@ -6,7 +7,7 @@ using System.Text;
 
 namespace LMS.Api.Infrastructure.Authentication;
 
-public sealed class TokenProvider(IConfiguration configuration)
+public sealed class TokenProvider(IConfiguration configuration) : ITokenProvider
 {
     public string Create(User user)
     {

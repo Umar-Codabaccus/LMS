@@ -1,9 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using LMS.Api.Domain.Entities;
+using LMS.Api.Application;
 
 namespace LMS.Api.Infrastructure.Context;
 
-public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
+public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options), IAppDbContext
 {
     public DbSet<User> Users { get; set; }
     public DbSet<Course> Courses { get; set; }

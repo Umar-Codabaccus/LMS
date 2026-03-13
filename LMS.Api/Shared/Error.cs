@@ -16,5 +16,13 @@
             Code = "General.Null",
             Message = "Null value was provided"
         };
+
+        public static readonly Error ValidationError
+            = new()
+            {
+                Code = "General.Validation",
+                Message = "Validation error occured",
+                Type = ErrorType.Validation
+            };
     }
 }

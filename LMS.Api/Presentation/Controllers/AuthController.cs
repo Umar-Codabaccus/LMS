@@ -1,4 +1,6 @@
-﻿using LMS.Api.Application.DTOs.Auth;
+﻿using LMS.Api.Application.AuthServices.Login;
+using LMS.Api.Application.AuthServices.Register;
+using LMS.Api.Application.DTOs.Auth;
 using LMS.Api.Application.Errors;
 using LMS.Api.Application.Services.Interfaces;
 using LMS.Api.Shared;
@@ -11,12 +13,18 @@ namespace LMS.Api.Presentation.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IUserService _userService;
-        private readonly IAuthService _authService;
+        //private readonly IAuthService _authService;
+        private readonly ILoginHandler _loginHandler;
+        private readonly IRegisterUserHandler _registerUserHandler;
 
-        public AuthController(IUserService userService, IAuthService authService)
+        public AuthController(
+            IUserService userService,
+            ILoginHandler loginHandler,
+            IRegisterUserHandler registerUserHandler)
         {
             _userService = userService;
-            _authService = authService;
+            _loginHandler = loginHandler;
+            _registerUserHandler = registerUserHandler;
         }
 
         [HttpPost("register")]
@@ -40,15 +48,13 @@ namespace LMS.Api.Presentation.Controllers
         }
 
         [HttpPost("jwt-login")]
-        public ActionResult JwtLogin(AuthRequest request)
+        public ActionResult JwtLogin(LoginRequest request)
         {
-            var result = _authService.LoginUser(request);
+            var response = _loginHandler.Handle(request);
 
-            var response = new JwtAuthResponse(result.Value, result.Error);
-
-            if (result.IsFailure)
+            if (response.IsFailure)
             {
-                Error error = result.Error;
+                Error error = response.Error;
                 switch (error.Type)
                 {
                     case ErrorType.NotFound: return NotFound(response);
@@ -57,6 +63,28 @@ namespace LMS.Api.Presentation.Controllers
             }
 
             return Ok(response);
+        }
+
+        [HttpPost("jwt-register")]
+        public ActionResult JwtRegister(RegisterUserRequest request)
+        {
+            var response = _registerUserHandler.Handle(request);
+
+            if (response.IsFailure && response.IsValidationError)
+            {
+                return BadRequest(response.Errors);
+            }
+            else if (response.IsFailure && !response.IsValidationError)
+            {
+                switch (response.Error.Type)
+                {
+                    case ErrorType.NotFound: return NotFound(response);
+                    case ErrorType.BadRequest: return BadRequest(response);
+                    case ErrorType.Conflict: return Conflict(response);
+                }
+            }
+
+            return Created(nameof(JwtRegister), response);
         }
 
         [HttpPost("login")]

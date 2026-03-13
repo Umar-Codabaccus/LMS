@@ -1,5 +1,7 @@
+using LMS.Api.Application;
 using LMS.Api.Application.Services;
 using LMS.Api.Application.Services.Interfaces;
+using LMS.Api.Extensions;
 using LMS.Api.Infrastructure.Authentication;
 using LMS.Api.Infrastructure.Context;
 using LMS.Api.Infrastructure.Interfaces;
@@ -9,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
+using System.Reflection;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -32,7 +35,10 @@ builder.Services.AddOpenApi();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddSingleton<TokenProvider>();
+builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
+builder.Services.AddSingleton<ITokenProvider, TokenProvider>();
+builder.Services.AddScoped<IAppDbContext, AppDbContext>();
+builder.Services.AddApplicationServices();
 
 // repos
 builder.Services.AddScoped<IUserRepository, UserRepository>();

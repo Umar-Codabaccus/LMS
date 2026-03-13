@@ -9,7 +9,7 @@ using LMS.Api.Shared;
 
 namespace LMS.Api.Application.Services;
 
-public sealed class AuthService(IUserRepository userRepository, TokenProvider tokenProvider) : IAuthService
+public sealed class AuthService(IUserRepository userRepository, ITokenProvider tokenProvider) : IAuthService
 {
     public Result<string> LoginUser(AuthRequest request)
     {

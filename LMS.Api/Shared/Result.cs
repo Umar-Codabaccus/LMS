@@ -4,7 +4,9 @@
     {
         public bool IsSuccess { get; set; }
         public bool IsFailure { get; set; }
+        public bool IsValidationError { get; set; }
         public Error Error { get; set; }
+        public ValidationErrors Errors { get; set; }
 
         public Result(bool isSuccess, Error error)
         {
@@ -20,7 +22,17 @@
 
             IsSuccess = isSuccess;
             IsFailure = !isSuccess;
+            IsValidationError = false;
             Error = error;
+        }
+
+        public Result(bool isSuccess, ValidationErrors errors)
+        {
+            IsSuccess = isSuccess;
+            IsFailure = !isSuccess;
+            IsValidationError = IsFailure;
+            Errors = errors;
+            Error = Error.ValidationError;
         }
 
         public static Result Success()
@@ -34,6 +46,11 @@
 
         public static Result<TValue> Failure<TValue>(Error error)
             => new(default, false, error);
+
+        public static Result Failure(ValidationErrors errors)
+            => new(false, errors);
+        public static Result<TValue> Failure<TValue>(ValidationErrors errors)
+            => new(default, false, errors);
     }
 
     public class Result<TValue> : Result
@@ -41,6 +58,11 @@
         public TValue? Value { get; set; }
 
         public Result(TValue value, bool isSuccess, Error error) : base(isSuccess, error)
+        {
+            Value = value;
+        }
+
+        public Result(TValue value, bool isSuccess, ValidationErrors errors) : base(isSuccess, errors)
         {
             Value = value;
         }

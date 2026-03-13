@@ -6,4 +6,5 @@ public enum ErrorType
     NotFound = 1,
     Conflict = 2,
     None = 3,
+    Validation = 4
 }

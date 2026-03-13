@@ -13,12 +13,10 @@ namespace LMS.Api.Application.Services
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
-        TokenProvider _tokenProvider;
 
-        public UserService(IUserRepository userRepository, TokenProvider tokenProvider)
+        public UserService(IUserRepository userRepository)
         {
             _userRepository = userRepository;
-            _tokenProvider = tokenProvider;
         }
 
         public AuthResponse Register(RegisterDto dto)
