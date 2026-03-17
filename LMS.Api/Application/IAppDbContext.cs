@@ -10,5 +10,5 @@ public interface IAppDbContext
     public DbSet<Module> Modules { get; set; }
     public DbSet<EnrolledCourse> EnrolledCourses { get; set; }
     public DbSet<EnrolledModule> EnrolledModules { get; set; }
-    int SaveChanges();
+    Task<int> SaveChangesAsync();
 }
