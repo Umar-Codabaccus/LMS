@@ -2,8 +2,6 @@
 using LMS.Api.Domain.Entities;
 using LMS.Api.Domain.Enums;
 using LMS.Api.Shared;
-using System.Net.Mail;
-using Microsoft.AspNetCore.Identity;
 using LMS.Api.Application.Errors;
 
 namespace LMS.Api.Application.AuthServices.Register;
@@ -19,12 +17,10 @@ public sealed class RegisterUserHandler(ITokenProvider tokenProvider, IAppDbCont
             return Result.Failure<RegisterUserResponse>(validationErrors);
         }
 
-        var email = context.Users
-            .Where(u => u.Email == request.Email)
-            .Select(u => u.Email)
-            .FirstOrDefault();
+        var userExist = context.Users
+            .Any(u => u.Email == request.Email);
 
-        if (email is not null)
+        if (userExist)
         {
             return Result.Failure<RegisterUserResponse>(
                 new Error()
@@ -36,16 +32,26 @@ public sealed class RegisterUserHandler(ITokenProvider tokenProvider, IAppDbCont
         }
 
         var passwordHash = PasswordHelper.HashPassword(request.Password);
-        var user = new User()
+        var userResult = User.RegisterUser(
+                request.Firstname,
+                request.Lastname,
+                request.Email,
+                passwordHash,
+                RoleType.Learner
+            );
+
+        var user = userResult.Value;
+
+        if (user is null)
         {
-            Firstname = request.Firstname,
-            Lastname = request.Lastname,
-            Email = request.Email,
-            Role = RoleType.Learner.ToString(),
-            PasswordHash = passwordHash,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
+            return Result.Failure<RegisterUserResponse>(
+                new Error()
+                {
+                    Code = "UserRegistrationFailed",
+                    Message = "Failed to register user",
+                    Type = ErrorType.Internal
+                });
+        }
 
         context.Users.Add(user);
 

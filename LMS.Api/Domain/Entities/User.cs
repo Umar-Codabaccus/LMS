@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using LMS.Api.Domain.Enums;
+using LMS.Api.Shared;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace LMS.Api.Domain.Entities;
@@ -6,46 +8,49 @@ namespace LMS.Api.Domain.Entities;
 [Table("Users")]
 public sealed class User
 {
-    [Key]
-    [Column("UserId")]
-    public Guid Id { get; set; } = Guid.NewGuid();
+    private readonly List<Course> _courses = [];
+    private readonly List<EnrolledCourse> _enrolledCourses = [];
+    private readonly List<UserRole> _userRoles = [];
 
-    [Required]
-    [MaxLength(50)]
-    [StringLength(50, MinimumLength = 2)]
-    [Column("Firstname", TypeName = "nvarchar(50)")]
-    public string Firstname { get; set; } = string.Empty;
+    private User() { }
 
-    [Required]
-    [MaxLength(50)]
-    [StringLength(50, MinimumLength = 2)]
-    [Column("Lastname", TypeName = "nvarchar(50)")]
-    public string Lastname { get; set; } = string.Empty;
+    public Guid Id { get; private init; }
+    public string Firstname { get; private set; } = string.Empty;
+    public string Lastname { get; private set; } = string.Empty;
+    public string Email { get; private set; } = string.Empty;
+    public string PasswordHash { get; private set; } = string.Empty;
+    public string Role { get; private set; } = string.Empty;
+    public string? ProfileImageUrl { get; private set; } = string.Empty;
+    public string? Bio { get; private set; } = string.Empty;
 
-    [Required]
-    [MaxLength(150)]
-    [StringLength(150)]
-    [Column("Email", TypeName = "nvarchar(150)")]
-    public string Email { get; set; } = string.Empty;
-
-    [Required]
-    [Column("Password", TypeName = "nvarchar(255)")]
-    public string PasswordHash { get; set; } = string.Empty;
-
-    [Required]
-    [Column("Role", TypeName = "nvarchar(50)")]
-    public string Role { get; set; } = string.Empty;
-
-    [Column("ProfileImageUrl", TypeName = "nvarchar(255)")]
-    public string? ProfileImageUrl { get; set; } = string.Empty;
-
-    [Column("Bio", TypeName = "nvarchar(500)")]
-    public string? Bio { get; set; } = string.Empty;
-
-    [Required]
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 
-    public List<Course> Courses { get; set; }
-    public List<EnrolledCourse> EnrolledCourses { get; set; }
+    public IReadOnlyCollection<Course> Courses => _courses;
+    public IReadOnlyCollection<EnrolledCourse> EnrolledCourses => _enrolledCourses;
+    public IReadOnlyCollection<UserRole> UserRoles => _userRoles;
+
+    public static Result<User> RegisterUser(string firstname, string lastname, string email, string passwordHash, RoleType roleType)
+    {
+        var user = new User()
+        {
+            Id = Guid.NewGuid(),
+            Firstname = firstname,
+            Lastname = lastname,
+            Email = email,
+            PasswordHash = passwordHash,
+            Role = roleType.ToString(),
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        return user;
+    }
+
+    public void Update(string firstname, string lastname)
+    {
+        Firstname = firstname;
+        Lastname = lastname;
+        UpdatedAt = DateTime.UtcNow;
+    }
 }
