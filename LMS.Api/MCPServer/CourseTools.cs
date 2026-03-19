@@ -12,10 +12,10 @@ using System.Text.Json;
 namespace LMS.Api.MCPServer;
 
 [McpServerToolType]
-public static class CourseTools
+public class CourseTools
 {
     [McpServerTool, Description("Get course information for a course title")]
-    public static async Task<CourseInfo> GetCourseInfo(IAppDbContext context, string title)
+    public async Task<CourseInfo> GetCourseInfo(IAppDbContext context, string title)
     {
         var course = await context.Courses
             .FirstOrDefaultAsync(c => c.Title == title);

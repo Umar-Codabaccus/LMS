@@ -39,7 +39,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
 builder.Services.AddSingleton<ITokenProvider, TokenProvider>();
 builder.Services.AddScoped<IAppDbContext, AppDbContext>();
-builder.Services.AddApplicationServices();
 
 // repos
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -71,6 +70,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddMcpServer()
     .WithHttpTransport()
     .WithToolsFromAssembly();
+
+
+builder.Services.AddApplicationServices();
 
 var app = builder.Build();
 

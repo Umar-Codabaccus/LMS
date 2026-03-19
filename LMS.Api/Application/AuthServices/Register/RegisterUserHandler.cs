@@ -5,12 +5,13 @@ using LMS.Api.Shared;
 using System.Net.Mail;
 using Microsoft.AspNetCore.Identity;
 using LMS.Api.Application.Errors;
+using Microsoft.EntityFrameworkCore;
 
 namespace LMS.Api.Application.AuthServices.Register;
 
 public sealed class RegisterUserHandler(ITokenProvider tokenProvider, IAppDbContext context) : IRegisterUserHandler
 {
-    public Result<RegisterUserResponse> Handle(RegisterUserRequest request)
+    public async Task<Result<RegisterUserResponse>> Handle(RegisterUserRequest request)
     {
         ValidationErrors validationErrors = RegisterUserValidator.Validate(request);
 
@@ -19,10 +20,10 @@ public sealed class RegisterUserHandler(ITokenProvider tokenProvider, IAppDbCont
             return Result.Failure<RegisterUserResponse>(validationErrors);
         }
 
-        var email = context.Users
+        var email = await context.Users
             .Where(u => u.Email == request.Email)
             .Select(u => u.Email)
-            .FirstOrDefault();
+            .FirstOrDefaultAsync();
 
         if (email is not null)
         {
@@ -47,9 +48,9 @@ public sealed class RegisterUserHandler(ITokenProvider tokenProvider, IAppDbCont
             UpdatedAt = DateTime.UtcNow
         };
 
-        context.Users.Add(user);
+        await context.Users.AddAsync(user);
 
-        context.SaveChanges();
+        await context.SaveChangesAsync();
 
         var token = tokenProvider.Create(user);
 

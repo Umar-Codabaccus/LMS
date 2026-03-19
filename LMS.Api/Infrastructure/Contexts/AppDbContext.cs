@@ -41,6 +41,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             .WithMany(c => c.Modules)
             .HasForeignKey(m => m.CourseId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        
     }
 
 }
