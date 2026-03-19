@@ -39,17 +39,17 @@ namespace LMS.Api.Application.Services
             var passwordHash = PasswordHelper.HashPassword(dto.Password);
 
             // Create user
-            var user = User.RegisterUser
-            (
-                dto.Firstname,
-                dto.Lastname,
-                dto.Email,
-                passwordHash,
-                RoleType.Learner
-            );
+            User user = new()
+            {
+                Firstname = dto.Firstname,
+                Lastname = dto.Lastname,
+                Email = dto.Email,
+                Role = RoleType.Learner.ToString(),
+                PasswordHash = passwordHash
+            };
 
             // Add User to database
-            var addedUser = _userRepository.Add(user.Value);
+            var addedUser = _userRepository.Add(user);
 
             if (addedUser is null)
             {
@@ -155,7 +155,9 @@ namespace LMS.Api.Application.Services
                 };
             }
 
-            user.Update(dto.Firstname, dto.Lastname);
+            user.Firstname = dto.Firstname;
+            user.Lastname = dto.Lastname;
+            user.UpdatedAt = DateTime.Now;
 
             // Update user
             var isUserUpdated = _userRepository.Update(user);
