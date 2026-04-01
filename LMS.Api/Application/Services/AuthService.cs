@@ -2,7 +2,6 @@
 using LMS.Api.Application.DTOs.Auth;
 using LMS.Api.Application.Errors;
 using LMS.Api.Application.Services.Interfaces;
-using LMS.Api.Application.Utilities;
 using LMS.Api.Infrastructure.Authentication;
 using LMS.Api.Infrastructure.Interfaces;
 using LMS.Api.Shared;
@@ -30,7 +29,7 @@ public sealed class AuthService(IUserRepository userRepository, ITokenProvider t
         }
 
         // Check if password matches
-        bool isPasswordCorrect = PasswordHelper.VerifyPassword(request.Password, user.PasswordHash);
+        bool isPasswordCorrect = PasswordHasher.VerifyPassword(request.Password, user.PasswordHash);
 
         if (isPasswordCorrect == false)
         {

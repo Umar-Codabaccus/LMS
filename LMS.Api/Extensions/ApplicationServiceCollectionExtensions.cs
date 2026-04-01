@@ -6,6 +6,7 @@ public static class ApplicationServiceCollectionExtensions
     {
         services.AddAuthServices();
         services.AddMcpToolsService();
+        services.AddOutputCachePolicies();
         return services;
     }
 }

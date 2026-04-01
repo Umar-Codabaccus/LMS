@@ -1,7 +1,6 @@
 ﻿using LMS.Api.Application.DTOs.Auth;
 using LMS.Api.Infrastructure.Interfaces;
 using LMS.Api.Domain.Entities;
-using LMS.Api.Application.Utilities;
 using LMS.Api.Application.Errors;
 using LMS.Api.Domain.Enums;
 using LMS.Api.Application.Services.Interfaces;
@@ -36,7 +35,7 @@ namespace LMS.Api.Application.Services
             }
 
             // Hash Password
-            var passwordHash = PasswordHelper.HashPassword(dto.Password);
+            var passwordHash = PasswordHasher.HashPassword(dto.Password);
 
             // Create user
             User user = new()
@@ -90,7 +89,7 @@ namespace LMS.Api.Application.Services
             }
 
             // Check if password matches
-            bool isPasswordCorrect = PasswordHelper.VerifyPassword(request.Password, userAccount.PasswordHash);
+            bool isPasswordCorrect = PasswordHasher.VerifyPassword(request.Password, userAccount.PasswordHash);
 
             if (isPasswordCorrect == false)
             {

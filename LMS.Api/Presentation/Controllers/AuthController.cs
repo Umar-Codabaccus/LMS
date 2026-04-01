@@ -13,7 +13,6 @@ namespace LMS.Api.Presentation.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IUserService _userService;
-        //private readonly IAuthService _authService;
         private readonly ILoginHandler _loginHandler;
         private readonly IRegisterUserHandler _registerUserHandler;
 
@@ -66,9 +65,9 @@ namespace LMS.Api.Presentation.Controllers
         }
 
         [HttpPost("jwt-register")]
-        public ActionResult JwtRegister(RegisterUserRequest request)
+        public async Task<ActionResult> JwtRegister(RegisterUserRequest request, CancellationToken cancellationToken)
         {
-            var response = _registerUserHandler.Handle(request);
+            Result<RegisterUserResponse> response = await _registerUserHandler.Handle(request, cancellationToken);
 
             if (response.IsFailure && response.IsValidationError)
             {

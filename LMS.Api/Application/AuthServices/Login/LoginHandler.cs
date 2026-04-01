@@ -1,5 +1,4 @@
 ﻿using LMS.Api.Application.Errors;
-using LMS.Api.Application.Utilities;
 using LMS.Api.Infrastructure.Authentication;
 using LMS.Api.Shared;
 
@@ -25,7 +24,7 @@ public sealed class LoginHandler(IAppDbContext context, ITokenProvider tokenProv
         }
 
         // check password
-        if (!PasswordHelper.VerifyPassword(request.Password, user.PasswordHash))
+        if (!PasswordHasher.VerifyPassword(request.Password, user.PasswordHash))
         {
             Error error = new()
             {

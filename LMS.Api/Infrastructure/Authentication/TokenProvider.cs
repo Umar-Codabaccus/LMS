@@ -9,7 +9,7 @@ namespace LMS.Api.Infrastructure.Authentication;
 
 public sealed class TokenProvider(IConfiguration configuration) : ITokenProvider
 {
-    public string Create(User user)
+    public string Create(User user, UserEmail email, UserAccount account)
     {
         string secretKey = configuration["Jwt:Secret"];
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
@@ -21,7 +21,7 @@ public sealed class TokenProvider(IConfiguration configuration) : ITokenProvider
             Subject = new ClaimsIdentity(
                 [
                     new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                    new Claim(JwtRegisteredClaimNames.Email, user.Email)
+                    new Claim(JwtRegisteredClaimNames.Email, email.Email)
                 ]),
             Expires = DateTime.Now.AddMinutes(configuration.GetValue<int>("Jwt:ExpirationInMinutes")),
             SigningCredentials = credentials,

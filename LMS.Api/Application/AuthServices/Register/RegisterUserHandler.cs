@@ -1,17 +1,17 @@
-﻿using LMS.Api.Application.Utilities;
-using LMS.Api.Domain.Entities;
+﻿using LMS.Api.Domain.Entities;
 using LMS.Api.Domain.Enums;
 using LMS.Api.Shared;
 using System.Net.Mail;
 using Microsoft.AspNetCore.Identity;
 using LMS.Api.Application.Errors;
 using Microsoft.EntityFrameworkCore;
+using LMS.Api.Infrastructure.Authentication;
 
 namespace LMS.Api.Application.AuthServices.Register;
 
 public sealed class RegisterUserHandler(ITokenProvider tokenProvider, IAppDbContext context) : IRegisterUserHandler
 {
-    public async Task<Result<RegisterUserResponse>> Handle(RegisterUserRequest request)
+    public async Task<Result<RegisterUserResponse>> Handle(RegisterUserRequest request, CancellationToken cancellationToken)
     {
         ValidationErrors validationErrors = RegisterUserValidator.Validate(request);
 
@@ -36,7 +36,7 @@ public sealed class RegisterUserHandler(ITokenProvider tokenProvider, IAppDbCont
                 });
         }
 
-        var passwordHash = PasswordHelper.HashPassword(request.Password);
+        var passwordHash = PasswordHasher.HashPassword(request.Password);
         var user = new User()
         {
             Firstname = request.Firstname,
@@ -50,12 +50,12 @@ public sealed class RegisterUserHandler(ITokenProvider tokenProvider, IAppDbCont
 
         await context.Users.AddAsync(user);
 
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(cancellationToken);
 
         var token = tokenProvider.Create(user);
 
         var response = new RegisterUserResponse(token, Error.None);
 
-        return Result.Success(response);
+        return response;
     }
 }

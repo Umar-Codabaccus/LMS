@@ -4,6 +4,6 @@ namespace LMS.Api.Application.AuthServices.Register
 {
     public interface IRegisterUserHandler
     {
-        Task<Result<RegisterUserResponse>> Handle(RegisterUserRequest request);
+        Task<Result<RegisterUserResponse>> Handle(RegisterUserRequest request, CancellationToken cancellationToken);
     }
 }

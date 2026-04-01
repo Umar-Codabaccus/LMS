@@ -1,19 +1,16 @@
 using LMS.Api.Application;
-using LMS.Api.Application.Services;
-using LMS.Api.Application.Services.Interfaces;
 using LMS.Api.Extensions;
 using LMS.Api.Infrastructure.Authentication;
 using LMS.Api.Infrastructure.Context;
-using LMS.Api.Infrastructure.Interfaces;
-using LMS.Api.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
-using System.Reflection;
 using System.Text;
-using ModelContextProtocol.AspNetCore;
+using Asp.Versioning;
+using Asp.Versioning.Builder;
+using LMS.Api.Application.Utilities;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,19 +36,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
 builder.Services.AddSingleton<ITokenProvider, TokenProvider>();
 builder.Services.AddScoped<IAppDbContext, AppDbContext>();
+builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
 
-// repos
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<ICourseRepository, CourseRepository>();
-builder.Services.AddScoped<IModuleRepository, ModuleRepository>();
-builder.Services.AddScoped<IEnrolledCourseRepository, EnrolledCourseRepository>();
-
-// services
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<ICourseService, CourseService>();
-builder.Services.AddScoped<IModuleService, ModuleService>();
-builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
+builder.Services.AddEndpoints(typeof(Program).Assembly);
 
 builder.Services.AddAuthorization();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -71,7 +58,6 @@ builder.Services.AddMcpServer()
     .WithHttpTransport()
     .WithToolsFromAssembly();
 
-
 builder.Services.AddApplicationServices();
 
 var app = builder.Build();
@@ -90,6 +76,17 @@ app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 
+ApiVersionSet apiVersionSet = app.NewApiVersionSet()
+    .HasApiVersion(new ApiVersion(1))
+    .ReportApiVersions()
+    .Build();
+
+RouteGroupBuilder versionGroup = app
+    .MapGroup("api/v{version:apiVersion}")
+    .WithApiVersionSet(apiVersionSet);
+
+app.MapEndpoints(versionGroup);
+
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(
@@ -97,6 +94,8 @@ app.UseStaticFiles(new StaticFileOptions
     ),
     RequestPath = "/uploads" // URL prefix
 });
+
+app.UseOutputCache();
 
 app.MapControllers();
 
